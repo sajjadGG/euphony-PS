@@ -223,7 +223,7 @@ def get_data_expr(expr, prog,ps):
             else:
                 curr_addr = move_cache[(curr_addr, instr)]
         
-        ctxt += ps
+        ctxt += list(map(str,ps))
         cond = ','.join(ctxt)
         result.append((cond, term_symb))
     return result
@@ -1021,8 +1021,16 @@ if __name__ == "__main__":
 
     
     # bechmark_file format : original benchmark_file + its solution
-    mappings = {'11440431':['0','1'],'12948338':['1','1'],'19274448':['1','0'],
-                '19558979':['0','0']}
+    # mappings = {'11440431':['0','1'],'12948338':['1','1'],'19274448':['1','0'],
+    #             '19558979':['0','0']}
+    
+    # Undo comment to get non-hardcoded prop_sigs
+    
+    mappings = {}
+    with (open("euphony/bin/processed_data.pickle", "rb")) as openfile:
+       mappings = pickle.load(openfile)
+
+
     exprs_per_category, all_vocabs,ps_dic = get_func_exprs_grammars(benchmark_files,mappings)
     # print([exprs.expression_to_string(e) for e in fun_exprs])
     print(len(exprs_per_category))
