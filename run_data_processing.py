@@ -1,11 +1,12 @@
 
 import os
 from sygus_parser import StrParser
-from property_signatures import compute_property_sig
+from property_signatures import compute_property_sig, property_signatures_to_cluster_ids
 # from sygus_string_dsl import *
 from utils import PATH_TO_STR_BENCHMARKS
 import pickle
 import json
+import numpy as np
 
 def prop_sig_to_str(prop_sig):
     return ''.join(str(x) for x in prop_sig)
@@ -28,14 +29,16 @@ def main():
     # cur.execute("CREATE TABLE problem_input_output (problem, input_output_dicts)")
     # cur.execute("CREATE TABLE problem_property_signatures (problem, property_signatures)")
     '''
-    problem -> (inout_dicts, prop_sigs)
+    problem -> (inout_dicts, prop_sig, cluster_id)
     '''
     data_dict = {}
+    property_sigs_X = []
+    benchmark_list = []
+    in_out_examples_list = []
+    
 
-
-
-    benchmark_list = os.listdir(PATH_TO_STR_BENCHMARKS)
-    for benchmark in benchmark_list:
+    benchmark_file_list = os.listdir(PATH_TO_STR_BENCHMARKS)
+    for benchmark in benchmark_file_list:
         print("benchmark: ", benchmark)
         specification_parser = StrParser(benchmark)
         specifications = specification_parser.parse()
@@ -64,31 +67,27 @@ def main():
         print(ps)
         print(len(ps))
 
-        data_dict.update({os.path.splitext(benchmark)[0]:(input_output_examples, ps)})
-        with open("processed_data.pickle", 'wb') as file:
-            pickle.dump(data_dict, file)
+
+        # data_dict.update({os.path.splitext(benchmark)[0]:(input_output_examples, ps)})
+        property_sigs_X.append(ps)
+        benchmark_list.append(os.path.splitext(benchmark)[0])
+        in_out_examples_list.append(input_output_examples)
+
+    ps_arr = np.array(property_sigs_X)
+    cluster_ids = property_signatures_to_cluster_ids(ps_arr, n_components=0.99, n_clusters=15)
+
+    for benchmark, in_out, ps, c_id in zip(benchmark_list, in_out_examples_list, property_sigs_X, cluster_ids):
+        data_dict.update({benchmark: (in_out, ps, c_id)})
 
 
-        # '''
-        # input_output table
-        # problem -> input-output pairs
-        # property_signature table
-        # problem -> property signature
-        # '''
-        # cur.execute("INSERT INTO problem_input_output VALUES (\'"+benchmark+"\', \'"+inout_list_to_str(input_output_examples)+"\')")
-        # cur.execute("INSERT INTO problem_property_signatures VALUES (\'"+benchmark+"\', \'"+prop_sig_to_str(ps)+"\')")
-        #
-        # con.commit()
+    f_name = "processed_data.pickle"
+    with open(f_name, 'wb') as file:
+        pickle.dump(data_dict, file)
+    
+    print("Saved input out examples, property signatures and cluster_ids in", f_name)
 
 
-
-
-
-    # BustlePCFG.initialize(operations=dsl_functions, string_literals=string_literals,
-    #                       integer_literals=integer_literals, boolean_literals=[True, False],
-    #                       string_variables=string_variables, integer_variables=integer_variables)
-
-
+    
 
 if __name__ == '__main__':
     main()
