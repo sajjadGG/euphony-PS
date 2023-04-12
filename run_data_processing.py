@@ -74,7 +74,7 @@ def main():
         in_out_examples_list.append(input_output_examples)
 
     ps_arr = np.array(property_sigs_X)
-    cluster_ids = property_signatures_to_cluster_ids(ps_arr, n_components=0.99, n_clusters=15)
+    cluster_ids = property_signatures_to_cluster_ids(ps_arr, n_components=0.99, n_clusters=4)
 
     for benchmark, in_out, ps, c_id in zip(benchmark_list, in_out_examples_list, property_sigs_X, cluster_ids):
         data_dict.update({benchmark: (in_out, ps, c_id)})
