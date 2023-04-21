@@ -2,7 +2,7 @@
 import re
 from sklearn.decomposition import PCA
 import numpy as np
-from sklearn.cluster import SpectralClustering
+from sklearn.cluster import SpectralClustering,KMeans
 regex_digit = re.compile('\d')
 regex_only_digits = re.compile('^\d+$')
 regex_alpha = re.compile('[a-zA-Z]')
@@ -1652,10 +1652,16 @@ def compute_property_sig(input_output_dicts_list, string_variables_list, integer
 
 def property_signatures_to_cluster_ids(property_signatures, n_components, n_clusters):
     X = np.array(property_signatures)
+    print(f'ps shape is {X.shape}')
+
     pca = PCA(n_components=n_components)
     X_new = pca.fit_transform(X)
+    print(f"after PCA {X_new.shape}")
+    assert False
     print("Num components: ", X_new.shape[1])
     clustering = SpectralClustering(n_clusters=n_clusters, assign_labels='discretize', random_state=0).fit(X_new)
+    # clustering = KMeans(n_clusters=n_clusters, random_state=0).fit(X_new)
+
     return clustering.labels_
 
 

@@ -1,5 +1,5 @@
 import subprocess
-from pickle import load
+from pickle import load, dump
 import logging
 import time
 import os
@@ -30,10 +30,11 @@ TEST_PATH = 'benchmarks/string/test/'
 
 command = f'cd ..;python run_data_processing.py --n_clusters {args.n_clusters}'
 logging.info('START CLUSTERING')
-result = subprocess.run(command,capture_output=True, shell=True)
+result = subprocess.run(command,capture_output=True, check=True,shell=True)
 logging.info('FINSISH CLUSTERING')
-logging.info(result.stdout.decode())
-logging.info(result.stderr.decode())
+print('finished clustering')
+# logging.info(result.stdout.decode())
+# logging.info(result.stderr.decode())
 with open(f'../processed_data_cluster_{args.n_clusters}.pickle','rb') as f:
     d = load(f)
 
@@ -80,16 +81,16 @@ cluster_test_time = {}
 cluster_output = {}
 phog_guide_command = "time timeout 3m bin/run_with_new_phog {} {} {}" 
 
-# small_problems = ['exceljet1','exceljet4','exceljet3','stackoverflow4','stackoverflow1','stackoverflow3'
-#                   ,'stackoverflow8','stackoverflow5','stackoverflow9','phone-5','phone-5-long',
-#                   'phone-5-long-repeat','phone-5-short','phone-6','phone-6-long',
-#                   'phone-6-long-repeat','phone-6-short','phone-7','phone-7-long',
-#                   'phone-7-long-repeat','phone-7-short']
-small_problems = ['stackoverflow8','stackoverflow9','phone-5-short']
+small_problems = ['exceljet1','exceljet4','exceljet3','stackoverflow4','stackoverflow1','stackoverflow3'
+                  ,'stackoverflow8','stackoverflow5','stackoverflow9','phone-5','phone-5-long',
+                  'phone-5-long-repeat','phone-5-short','phone-6','phone-6-long',
+                  'phone-6-long-repeat','phone-6-short','phone-7','phone-7-long',
+                  'phone-7-long-repeat','phone-7-short']
+# small_problems = ['stackoverflow8','stackoverflow9','phone-5-short']
 cluster_threshold = 10
 logging.info('----------- Testing Start ----------------')
 for k in d_rev:
-    grammar_cluster = f"{k}_n_clusters_{args.n_clusters}"
+    grammar_cluster = f"phog_str_{k}_n_clusters_{args.n_clusters}"
     grammar_all = "phog_str3all_train"
 
     test_files = list(map(lambda x:f'{TEST_PATH}{x}.sl' ,db['{}-test'.format(k)]))
@@ -106,7 +107,7 @@ for k in d_rev:
             command = phog_guide_command.format(grammar_cluster,LOG_FILE_NAME,t)
             # logging.info(f"SOlVING {t} WITH COMMAND {command}")
             
-            cluster_time = subprocess.run(command, capture_output=True, shell=True)
+            cluster_time = subprocess.run(command,capture_output=True, shell=True)
             # cluster_time = timeit(stmt = stmts, setup = "import subprocess", number = 1)
             command = phog_guide_command.format(grammar_all,LOG_FILE_NAME,t)
             all_phog_time = subprocess.run(command, capture_output=True, shell=True) #euphony
@@ -124,6 +125,10 @@ for k in cluster_test_time:
             logging.info(p[2])
             logging.info('------------')
 
-logging.info(f'average_time : {sum(all_time)/len(all_time)}')
+with open(f'cluster_{args.n_clusters}_time_info.pkl' ,'wb') as f:
+    dump(cluster_test_time,f)
+
+logging.info('---------- FINISHED TESTING-------------')
+# logging.info(f'average_time : {sum(all_time)/len(all_time)}')
 
 # # file -> hyperparameters -> result
